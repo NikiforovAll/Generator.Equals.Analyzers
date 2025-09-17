@@ -4,36 +4,84 @@ A Roslyn analyzer for the [Generator.Equals](https://github.com/diegofrata/Gener
 
 ## Features
 
-- **Smart Diagnostics**: Detects collection properties in `[Equatable]` classes that lack required equality attributes
-- **Intelligent Code Fixes**: Provides collection-specific attribute suggestions:
-  - `Dictionary<TKey,TValue>` → `[DictionaryEquality]`
-  - `HashSet<T>` / `ISet<T>` → `[SetEquality]`
+### Diagnostics
+
+- **GE001**: Detects collection properties in `[Equatable]` classes that lack required equality attributes
+- **GE002**: Detects complex object properties in `[Equatable]` classes where the property type lacks `[Equatable]` attribute
+- **GE003**: Detects collection properties with complex element types that lack `[Equatable]` attribute on the element type
+
+### Code Fixes
+
+- **Intelligent Attribute Suggestions**: Provides collection-specific attribute recommendations:
   - `List<T>` / `Array` / `IEnumerable<T>` → `[OrderedEquality]` or `[UnorderedEquality]`
 
 ## Example Usage
 
-### Before (Triggers GE001 Warning)
+### GE001: Collection Properties Without Equality Attributes
+
 ```csharp
+// Before
 [Equatable]
 public partial class MyClass
 {
     public List<string> Items { get; set; } // ⚠️ GE001: Missing equality attribute
-    public Dictionary<string, int> Data { get; set; } // ⚠️ GE001: Missing equality attribute
 }
-```
 
-### After (With Code Fixes Applied)
-```csharp
+// After
 [Equatable]
-
 public partial class MyClass
 {
     [UnorderedEquality] // or [OrderedEquality]
     public List<string> Items { get; set; }
-
-    [DictionaryEquality]
-    public Dictionary<string, int> Data { get; set; }
 }
+```
+
+### GE002: Complex Object Properties Without Equatable
+
+```csharp
+// Before
+[Equatable]
+public partial class Person
+{
+    public Address HomeAddress { get; set; } // ⚠️ GE002: Type 'Address' needs [Equatable]
+}
+
+public class Address { /* ... */ }
+
+// After
+[Equatable]
+public partial class Person
+{
+    public Address HomeAddress { get; set; } // ✅ No warning
+}
+
+[Equatable]
+public partial class Address { /* ... */ }
+```
+
+### GE003: Collection Element Types Without Equatable
+
+```csharp
+// Before
+[Equatable]
+public partial class CustomerList
+{
+    [OrderedEquality]
+    public List<Customer> Customers { get; set; } // ⚠️ GE003: Element type 'Customer' needs [Equatable]
+}
+
+public class Customer { /* ... */ }
+
+// After
+[Equatable]
+public partial class CustomerList
+{
+    [OrderedEquality]
+    public List<Customer> Customers { get; set; } // ✅ No warning
+}
+
+[Equatable]
+public partial class Customer { /* ... */ }
 ```
 
 Example of code fix suggestions:
