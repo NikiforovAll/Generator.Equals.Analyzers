@@ -2,6 +2,11 @@
 
 A Roslyn analyzer for the [Generator.Equals](https://github.com/diegofrata/Generator.Equals) library that ensures proper equality attribute usage on collection properties.
 
+## Installation
+```bash
+dotnet add package Nall.Generator.Equals.Analyzers
+```
+
 ## Features
 
 ### Diagnostics
@@ -86,8 +91,3 @@ public partial class Customer { /* ... */ }
 
 Example of code fix suggestions:
 ![](./assets/ge-code-fix.png)
-
-## Installation
-```bash
-dotnet add package Nall.GeneratorEquals.Analyzers
-```
