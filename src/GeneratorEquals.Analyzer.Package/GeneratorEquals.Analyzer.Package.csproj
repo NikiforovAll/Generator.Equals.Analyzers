@@ -7,14 +7,14 @@
   </PropertyGroup>
   <PropertyGroup>
     <PackageId>Nall.Generator.Equals.Analyzers</PackageId>
-    <PackageVersion>2.0.0</PackageVersion>
+    <PackageVersion>1.0.4</PackageVersion>
     <Authors>Generator.Equals Community</Authors>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/nikiforovall/Generator.Equals.Analyzers</PackageProjectUrl>
     <RepositoryUrl>https://github.com/nikiforovall/Generator.Equals.Analyzers</RepositoryUrl>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <Description>Roslyn analyzer that ensures proper equality attribute usage on collection properties in Generator.Equals classes. Supports arrays, lists, and collections with intelligent code fixes for IgnoreEquality, DefaultEquality, SequenceEquality, ReferenceEquality, OrderedEquality, and UnorderedEquality attributes.</Description>
-    <PackageReleaseNotes>v2.0.0: BREAKING CHANGE - Removed Dictionary and HashSet support to align with actual Generator.Equals capabilities. Fixed all compilation errors and updated analyzer logic to support only available collection types and equality attributes. v1.0.3: Added collection-specific code fixes with smart attribute suggestions.</PackageReleaseNotes>
+    <PackageReleaseNotes>$([System.IO.File]::ReadAllText("$(MSBuildProjectDirectory)/../../RELEASE_NOTES.md"))</PackageReleaseNotes>
     <Copyright>Copyright © 2025</Copyright>
     <PackageTags>roslyn;analyzer;generator.equals;equality;collections;codefix;diagnostics</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>

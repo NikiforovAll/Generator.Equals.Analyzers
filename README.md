@@ -43,12 +43,3 @@ Example of code fix suggestions:
 ```bash
 dotnet add package Nall.GeneratorEquals.Analyzers
 ```
-
-
-## Supported Collection Types
-
-| Collection Type | Suggested Attributes |
-|----------------|---------------------|
-| `Dictionary<TKey,TValue>`, `IDictionary<TKey,TValue>` | `[DictionaryEquality]` |
-| `HashSet<T>`, `ISet<T>`, `SortedSet<T>` | `[SetEquality]` |
-| `List<T>`, `IList<T>`, `T[]`, `IEnumerable<T>` | `[OrderedEquality]` or `[UnorderedEquality]` |

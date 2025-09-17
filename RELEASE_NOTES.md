@@ -1,8 +1,8 @@
 # Release Notes
 
-## Version 2.0.0 - 2025-09-17
+## Version 1.0.4 - 2025-09-17
 
-### 🚨 BREAKING CHANGES
+### 🔧 Bug Fixes
 - **Removed Dictionary and HashSet support** - These collection types are not actually supported by the Generator.Equals library
 - **Removed DictionaryEquality and SetEquality attributes** - These attributes don't exist in the Generator.Equals library
 
