@@ -13,7 +13,7 @@ public class EquatableCollectionAnalyzerTest
         MetadataReference.CreateFromFile(typeof(EquatableAttribute).Assembly.Location);
 
     [Fact]
-    public void Analyzer_HasCorrectDiagnosticDescriptor()
+    public void Analyzer_HasCorrectDiagnosticDescriptors()
     {
         // Arrange
         var analyzer = new EquatableCollectionAnalyzer();
@@ -22,14 +22,31 @@ public class EquatableCollectionAnalyzerTest
         var supportedDiagnostics = analyzer.SupportedDiagnostics;
 
         // Assert
-        Assert.Single(supportedDiagnostics);
-        var diagnostic = supportedDiagnostics[0];
+        Assert.Equal(3, supportedDiagnostics.Length);
 
-        Assert.Equal("GE001", diagnostic.Id);
-        Assert.Equal(Resources.GE001Title, diagnostic.Title.ToString());
-        Assert.Equal(Resources.GE001Category, diagnostic.Category);
-        Assert.Equal(DiagnosticSeverity.Warning, diagnostic.DefaultSeverity);
-        Assert.True(diagnostic.IsEnabledByDefault);
+        // Verify GE001 is present
+        var ge001 = supportedDiagnostics.First(d => d.Id == "GE001");
+        Assert.Equal(Resources.GE001Title, ge001.Title.ToString());
+        Assert.Equal(Resources.GE001Category, ge001.Category);
+        Assert.Equal(DiagnosticSeverity.Warning, ge001.DefaultSeverity);
+        Assert.True(ge001.IsEnabledByDefault);
+
+        // Verify GE002 is present
+        var ge002 = supportedDiagnostics.First(d => d.Id == "GE002");
+        Assert.Equal(
+            "Complex object property type lacks Equatable attribute",
+            ge002.Title.ToString()
+        );
+        Assert.Equal("Generator.Equals.Usage", ge002.Category);
+        Assert.Equal(DiagnosticSeverity.Warning, ge002.DefaultSeverity);
+        Assert.True(ge002.IsEnabledByDefault);
+
+        // Verify GE003 is present
+        var ge003 = supportedDiagnostics.First(d => d.Id == "GE003");
+        Assert.Equal("Collection element type requires Equatable attribute", ge003.Title.ToString());
+        Assert.Equal("Generator.Equals.Usage", ge003.Category);
+        Assert.Equal(DiagnosticSeverity.Warning, ge003.DefaultSeverity);
+        Assert.True(ge003.IsEnabledByDefault);
     }
 
     [Fact]
@@ -89,39 +106,7 @@ public class TestClass
         VerifyDiagnostic(source, "Numbers");
     }
 
-    [Fact]
-    public void EquatableClass_WithDictionaryProperty_WithoutEqualityAttribute_ShouldReportDiagnostic()
-    {
-        var source =
-            @"
-using System.Collections.Generic;
-using Generator.Equals;
 
-[Equatable]
-public class TestClass
-{
-    public Dictionary<string, int> Data { get; set; }
-}";
-
-        VerifyDiagnostic(source, "Data");
-    }
-
-    [Fact]
-    public void EquatableClass_WithHashSetProperty_WithoutEqualityAttribute_ShouldReportDiagnostic()
-    {
-        var source =
-            @"
-using System.Collections.Generic;
-using Generator.Equals;
-
-[Equatable]
-public class TestClass
-{
-    public HashSet<string> UniqueItems { get; set; }
-}";
-
-        VerifyDiagnostic(source, "UniqueItems");
-    }
 
     [Fact]
     public void EquatableClass_WithCollectionProperty_WithIgnoreEqualityAttribute_ShouldNotReportDiagnostic()
@@ -159,23 +144,6 @@ public class TestClass
         VerifyNoDiagnostic(source);
     }
 
-    [Fact]
-    public void EquatableClass_WithCollectionProperty_WithSetEqualityAttribute_ShouldNotReportDiagnostic()
-    {
-        var source =
-            @"
-using System.Collections.Generic;
-using Generator.Equals;
-
-[Equatable]
-public class TestClass
-{
-    [SetEquality]
-    public HashSet<int> Numbers { get; set; }
-}";
-
-        VerifyNoDiagnostic(source);
-    }
 
     [Fact]
     public void EquatableClass_WithCollectionProperty_WithOrderedEqualityAttribute_ShouldNotReportDiagnostic()
@@ -212,23 +180,6 @@ public class TestClass
         VerifyNoDiagnostic(source);
     }
 
-    [Fact]
-    public void EquatableClass_WithDictionaryProperty_WithDictionaryEqualityAttribute_ShouldNotReportDiagnostic()
-    {
-        var source =
-            @"
-using System.Collections.Generic;
-using Generator.Equals;
-
-[Equatable]
-public class TestClass
-{
-    [DictionaryEquality]
-    public Dictionary<string, int> Data { get; set; }
-}";
-
-        VerifyNoDiagnostic(source);
-    }
 
     [Fact]
     public void EquatableClass_WithCollectionProperty_WithReferenceEqualityAttribute_ShouldNotReportDiagnostic()
@@ -260,7 +211,7 @@ public class TestClass
 {
     public string[] Items; // Field - should be ignored
     public List<int> Numbers { get; set; } // Property - should be ignored (no [Equatable] attribute)
-    public Dictionary<string, object> Data { get; set; }
+    public List<object> Data { get; set; } = []
 }";
 
         VerifyNoDiagnostic(source);
@@ -296,8 +247,8 @@ using Generator.Equals;
 public class TestClass
 {
     private List<string> PrivateItems { get; set; }
-    protected HashSet<int> ProtectedNumbers { get; set; }
-    internal Dictionary<string, object> InternalData { get; set; }
+    protected List<int> ProtectedNumbers { get; set; } = []
+    internal List<object> InternalData { get; set; } = []
 }";
 
         VerifyNoDiagnostic(source);
@@ -315,8 +266,8 @@ using Generator.Equals;
 public class TestClass
 {
     private List<string> PrivateItems { get; set; }
-    protected HashSet<int> ProtectedNumbers { get; set; }
-    internal Dictionary<string, object> InternalData { get; set; }
+    protected List<int> ProtectedNumbers { get; set; } = []
+    internal List<object> InternalData { get; set; } = []
     public string[] PublicItems { get; set; }
 }";
 
@@ -336,8 +287,8 @@ public class TestClass
 {
     public List<string> PublicListField;
     public string[] PublicArrayField;
-    public Dictionary<string, int> PublicDictionaryField;
-    public HashSet<int> PublicHashSetField;
+    public List<int> PublicListField2;
+    public string[] PublicArrayField2;
 }";
 
         // Fields should not trigger diagnostics - only public properties should
@@ -361,11 +312,11 @@ public class TestClass
     [UnorderedEquality]
     public string[] AttributedArrayField;
 
-    [DictionaryEquality]
-    public Dictionary<string, int> AttributedDictionaryField;
+    [OrderedEquality]
+    public List<int> AttributedListField2;
 
-    [SetEquality]
-    public HashSet<int> AttributedHashSetField;
+    [UnorderedEquality]
+    public string[] AttributedArrayField2;
 
     [IgnoreEquality]
     public List<object> IgnoredListField;
@@ -394,7 +345,7 @@ public class TestClass
     [OrderedEquality]
     public List<int> AttributedProperty { get; set; }
 
-    public HashSet<string> UnattributedProperty { get; set; }  // Should trigger diagnostic
+    public List<string> UnattributedProperty { get; set; } = []  // Should trigger diagnostic
 }";
 
         VerifyDiagnostic(source, "UnattributedProperty");
@@ -408,10 +359,11 @@ public class TestClass
         var diagnostic = diagnostics[0];
         Assert.Equal("GE001", diagnostic.Id);
 
-        // The message format is "Collection field 'Items' in Equatable class 'TestClass' requires an equality attribute"
-        // So we check if the expected field name is in the message
+        // The message format is "Collection property 'Items' in Equatable class 'TestClass' requires an equality attribute"
+        // So we check if the expected property name is in the message
         var message = diagnostic.GetMessage();
-        Assert.Contains("Collection field", message);
+        Assert.Contains("Collection property", message);
+        Assert.Contains(expectedFieldName, message);
         Assert.Contains("TestClass", message);
     }
 
@@ -444,4 +396,424 @@ public class TestClass
         var diagnostics = compilationWithAnalyzers.GetAnalyzerDiagnosticsAsync().Result;
         return diagnostics.Where(d => d.Id == "GE001").ToArray();
     }
+
+    #region GE002 Tests - Complex Object Properties
+
+    [Fact]
+    public void EquatableClass_WithComplexObjectProperty_WithoutEquatableOnType_ShouldReportGE002()
+    {
+        var source = """
+            using Generator.Equals;
+
+            namespace TestNamespace
+            {
+                public class Address
+                {
+                    public string Street { get; set; } = "";
+                }
+
+                [Equatable]
+                public partial class Person
+                {
+                    public Address HomeAddress { get; set; } = new();
+                }
+            }
+            """;
+
+        var diagnostics = GetGE002Diagnostics(source);
+
+        Assert.Single(diagnostics);
+        Assert.Equal("GE002", diagnostics[0].Id);
+        Assert.Contains("HomeAddress", diagnostics[0].GetMessage());
+        Assert.Contains("Address", diagnostics[0].GetMessage());
+        Assert.Contains("Person", diagnostics[0].GetMessage());
+    }
+
+    [Fact]
+    public void EquatableClass_WithComplexObjectProperty_WithEquatableOnType_ShouldNotReportGE002()
+    {
+        var source = """
+            using Generator.Equals;
+
+            namespace TestNamespace
+            {
+                [Equatable]
+                public partial class Address
+                {
+                    public string Street { get; set; } = "";
+                }
+
+                [Equatable]
+                public partial class Person
+                {
+                    public Address HomeAddress { get; set; } = new();
+                }
+            }
+            """;
+
+        var diagnostics = GetGE002Diagnostics(source);
+
+        Assert.Empty(diagnostics);
+    }
+
+    [Fact]
+    public void EquatableClass_WithPrimitiveProperties_ShouldNotReportGE002()
+    {
+        var source = """
+            using Generator.Equals;
+            using System;
+
+            namespace TestNamespace
+            {
+                [Equatable]
+                public partial class Person
+                {
+                    public string Name { get; set; } = "";
+                    public int Age { get; set; }
+                    public DateTime Created { get; set; }
+                    public bool IsActive { get; set; }
+                    public decimal Salary { get; set; }
+                }
+            }
+            """;
+
+        var diagnostics = GetGE002Diagnostics(source);
+
+        Assert.Empty(diagnostics);
+    }
+
+    [Fact]
+    public void EquatableClass_WithSystemTypeProperties_ShouldNotReportGE002()
+    {
+        var source = """
+            using Generator.Equals;
+            using System;
+
+            namespace TestNamespace
+            {
+                [Equatable]
+                public partial class Person
+                {
+                    public DateTime Created { get; set; }
+                    public TimeSpan Duration { get; set; }
+                    public Guid Id { get; set; }
+                }
+            }
+            """;
+
+        var diagnostics = GetGE002Diagnostics(source);
+
+        Assert.Empty(diagnostics);
+    }
+
+    [Fact]
+    public void EquatableClass_WithEnumProperty_ShouldNotReportGE002()
+    {
+        var source = """
+            using Generator.Equals;
+
+            namespace TestNamespace
+            {
+                public enum Status
+                {
+                    Active,
+                    Inactive
+                }
+
+                [Equatable]
+                public partial class Person
+                {
+                    public Status CurrentStatus { get; set; }
+                }
+            }
+            """;
+
+        var diagnostics = GetGE002Diagnostics(source);
+
+        Assert.Empty(diagnostics);
+    }
+
+    [Fact]
+    public void NonEquatableClass_WithComplexObjectProperty_ShouldNotReportGE002()
+    {
+        var source = """
+            using Generator.Equals;
+
+            namespace TestNamespace
+            {
+                public class Address
+                {
+                    public string Street { get; set; } = "";
+                }
+
+                public class Person
+                {
+                    public Address HomeAddress { get; set; } = new();
+                }
+            }
+            """;
+
+        var diagnostics = GetGE002Diagnostics(source);
+
+        Assert.Empty(diagnostics);
+    }
+
+    private static Diagnostic[] GetGE002Diagnostics(string source)
+    {
+        var syntaxTree = CSharpSyntaxTree.ParseText(source);
+
+        var references = new List<MetadataReference>(Net80.References.All);
+        references.Add(s_generatorEqualsReference);
+
+        var compilation = CSharpCompilation.Create(
+            "TestCompilation",
+            [syntaxTree],
+            references,
+            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
+        );
+
+        var analyzer = new EquatableCollectionAnalyzer();
+        var compilationWithAnalyzers = compilation.WithAnalyzers(
+            ImmutableArray.Create<DiagnosticAnalyzer>(analyzer)
+        );
+
+        var diagnostics = compilationWithAnalyzers.GetAnalyzerDiagnosticsAsync().Result;
+        return diagnostics.Where(d => d.Id == "GE002").ToArray();
+    }
+
+    #endregion
+
+    #region GE003 Tests - Collection Element Types
+
+    [Fact]
+    public void EquatableClass_WithListOfComplexObjects_WithoutEquatableOnElementType_ShouldReportGE003()
+    {
+        var source = """
+            using System.Collections.Generic;
+            using Generator.Equals;
+
+            namespace TestNamespace
+            {
+                public class Customer
+                {
+                    public string Name { get; set; } = "";
+                }
+
+                [Equatable]
+                public partial class Order
+                {
+                    [OrderedEquality]
+                    public List<Customer> Customers { get; set; } = new();
+                }
+            }
+            """;
+
+        var diagnostics = GetGE003Diagnostics(source);
+
+        Assert.Single(diagnostics);
+        Assert.Equal("GE003", diagnostics[0].Id);
+        Assert.Contains("Customers", diagnostics[0].GetMessage());
+        Assert.Contains("Customer", diagnostics[0].GetMessage());
+        Assert.Contains("Order", diagnostics[0].GetMessage());
+    }
+
+    [Fact]
+    public void EquatableClass_WithArrayOfComplexObjects_WithoutEquatableOnElementType_ShouldReportGE003()
+    {
+        var source = """
+            using Generator.Equals;
+
+            namespace TestNamespace
+            {
+                public class Product
+                {
+                    public string Name { get; set; } = "";
+                }
+
+                [Equatable]
+                public partial class Store
+                {
+                    [UnorderedEquality]
+                    public Product[] Products { get; set; } = [];
+                }
+            }
+            """;
+
+        var diagnostics = GetGE003Diagnostics(source);
+
+        Assert.Single(diagnostics);
+        Assert.Equal("GE003", diagnostics[0].Id);
+        Assert.Contains("Products", diagnostics[0].GetMessage());
+        Assert.Contains("Product", diagnostics[0].GetMessage());
+        Assert.Contains("Store", diagnostics[0].GetMessage());
+    }
+
+
+    [Fact]
+    public void EquatableClass_WithListOfComplexObjects_WithEquatableOnElementType_ShouldNotReportGE003()
+    {
+        var source = """
+            using System.Collections.Generic;
+            using Generator.Equals;
+
+            namespace TestNamespace
+            {
+                [Equatable]
+                public partial class Customer
+                {
+                    public string Name { get; set; } = "";
+                }
+
+                [Equatable]
+                public partial class Order
+                {
+                    [OrderedEquality]
+                    public List<Customer> Customers { get; set; } = new();
+                }
+            }
+            """;
+
+        var diagnostics = GetGE003Diagnostics(source);
+
+        Assert.Empty(diagnostics);
+    }
+
+    [Fact]
+    public void EquatableClass_WithCollectionOfPrimitives_ShouldNotReportGE003()
+    {
+        var source = """
+            using System.Collections.Generic;
+            using Generator.Equals;
+
+            namespace TestNamespace
+            {
+                [Equatable]
+                public partial class Numbers
+                {
+                    [OrderedEquality]
+                    public List<int> Values { get; set; } = new();
+
+                    [UnorderedEquality]
+                    public string[] Names { get; set; } = [];
+
+                    [OrderedEquality]
+                    public decimal[] Prices { get; set; } = [];
+                }
+            }
+            """;
+
+        var diagnostics = GetGE003Diagnostics(source);
+
+        Assert.Empty(diagnostics);
+    }
+
+    [Fact]
+    public void EquatableClass_WithCollectionOfSystemTypes_ShouldNotReportGE003()
+    {
+        var source = """
+            using System;
+            using System.Collections.Generic;
+            using Generator.Equals;
+
+            namespace TestNamespace
+            {
+                [Equatable]
+                public partial class DateContainer
+                {
+                    [OrderedEquality]
+                    public List<DateTime> Dates { get; set; } = new();
+
+                    [UnorderedEquality]
+                    public Guid[] Ids { get; set; } = [];
+
+                    [DefaultEquality]
+                    public List<TimeSpan> Durations { get; set; } = new();
+                }
+            }
+            """;
+
+        var diagnostics = GetGE003Diagnostics(source);
+
+        Assert.Empty(diagnostics);
+    }
+
+    [Fact]
+    public void EquatableClass_WithCollectionOfEnums_ShouldNotReportGE003()
+    {
+        var source = """
+            using System.Collections.Generic;
+            using Generator.Equals;
+
+            namespace TestNamespace
+            {
+                public enum Status
+                {
+                    Active,
+                    Inactive
+                }
+
+                [Equatable]
+                public partial class StatusContainer
+                {
+                    [UnorderedEquality]
+                    public Status[] Statuses { get; set; } = [];
+                }
+            }
+            """;
+
+        var diagnostics = GetGE003Diagnostics(source);
+
+        Assert.Empty(diagnostics);
+    }
+
+    [Fact]
+    public void NonEquatableClass_WithCollectionOfComplexObjects_ShouldNotReportGE003()
+    {
+        var source = """
+            using System.Collections.Generic;
+            using Generator.Equals;
+
+            namespace TestNamespace
+            {
+                public class Customer
+                {
+                    public string Name { get; set; } = "";
+                }
+
+                public class Order
+                {
+                    public List<Customer> Customers { get; set; } = new();
+                }
+            }
+            """;
+
+        var diagnostics = GetGE003Diagnostics(source);
+
+        Assert.Empty(diagnostics);
+    }
+
+    private static Diagnostic[] GetGE003Diagnostics(string source)
+    {
+        var syntaxTree = CSharpSyntaxTree.ParseText(source);
+
+        var references = new List<MetadataReference>(Net80.References.All);
+        references.Add(s_generatorEqualsReference);
+
+        var compilation = CSharpCompilation.Create(
+            "TestCompilation",
+            [syntaxTree],
+            references,
+            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
+        );
+
+        var analyzer = new EquatableCollectionAnalyzer();
+        var compilationWithAnalyzers = compilation.WithAnalyzers(
+            ImmutableArray.Create<DiagnosticAnalyzer>(analyzer)
+        );
+
+        var diagnostics = compilationWithAnalyzers.GetAnalyzerDiagnosticsAsync().Result;
+        return diagnostics.Where(d => d.Id == "GE003").ToArray();
+    }
+
+    #endregion
 }

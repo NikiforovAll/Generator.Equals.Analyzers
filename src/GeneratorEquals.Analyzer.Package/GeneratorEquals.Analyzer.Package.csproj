@@ -7,14 +7,14 @@
   </PropertyGroup>
   <PropertyGroup>
     <PackageId>Nall.Generator.Equals.Analyzers</PackageId>
-    <PackageVersion>1.0.3</PackageVersion>
+    <PackageVersion>2.0.0</PackageVersion>
     <Authors>Generator.Equals Community</Authors>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/nikiforovall/Generator.Equals.Analyzers</PackageProjectUrl>
     <RepositoryUrl>https://github.com/nikiforovall/Generator.Equals.Analyzers</RepositoryUrl>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-    <Description>Roslyn analyzer that ensures proper equality attribute usage on collection properties in Generator.Equals classes. Provides intelligent code fixes with collection-specific attribute suggestions (DictionaryEquality, SetEquality, OrderedEquality, UnorderedEquality).</Description>
-    <PackageReleaseNotes>v1.0.3: Added collection-specific code fixes with smart attribute suggestions. v1.0.2: Enhanced analyzer to focus on public properties only. v1.0.1: Added comprehensive equality attribute support. v1.0.0: Initial release with basic GE001 diagnostic.</PackageReleaseNotes>
+    <Description>Roslyn analyzer that ensures proper equality attribute usage on collection properties in Generator.Equals classes. Supports arrays, lists, and collections with intelligent code fixes for IgnoreEquality, DefaultEquality, SequenceEquality, ReferenceEquality, OrderedEquality, and UnorderedEquality attributes.</Description>
+    <PackageReleaseNotes>v2.0.0: BREAKING CHANGE - Removed Dictionary and HashSet support to align with actual Generator.Equals capabilities. Fixed all compilation errors and updated analyzer logic to support only available collection types and equality attributes. v1.0.3: Added collection-specific code fixes with smart attribute suggestions.</PackageReleaseNotes>
     <Copyright>Copyright © 2025</Copyright>
     <PackageTags>roslyn;analyzer;generator.equals;equality;collections;codefix;diagnostics</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
@@ -27,8 +27,8 @@
     <ProjectReference Include="..\GeneratorEquals.Analyzer.CodeFixes\GeneratorEquals.Analyzer.CodeFixes.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <None Update="tools\*.ps1" CopyToOutputDirectory="Always" Pack="true" PackagePath="" />
-    <None Include="README.md" Pack="true" PackagePath="\" />
+    <!-- https://github.com/NuGet/Home/wiki/Embedding-and-displaying-NuGet-READMEs -->
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
   <Target Name="_AddAnalyzersToOutput">
     <ItemGroup>

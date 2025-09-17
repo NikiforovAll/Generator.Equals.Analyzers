@@ -16,23 +16,23 @@ var badExample1 = new BadExample_MissingAttributes
 {
     StringList = ["hello", "world"],
     NumberArray = [1, 2, 3],
-    DataDictionary = new() { ["key1"] = 100, ["key2"] = 200 },
-    UniqueNumbers = [1, 2, 3, 4, 5],
+    DataList = [100, 200],
+    NumberCollection = [1, 2, 3, 4, 5],
 };
 
 var badExample2 = new BadExample_MissingAttributes
 {
     StringList = ["hello", "world"],
     NumberArray = [1, 2, 3],
-    DataDictionary = new() { ["key1"] = 100, ["key2"] = 200 },
-    UniqueNumbers = [1, 2, 3, 4, 5],
+    DataList = [100, 200],
+    NumberCollection = [1, 2, 3, 4, 5],
 };
 
 Console.WriteLine("BAD EXAMPLES - These should trigger GE001 analyzer warnings:");
 Console.WriteLine("============================================================");
 Console.WriteLine();
 Console.WriteLine("1. BadExample_MissingAttributes:");
-Console.WriteLine("   - Contains List<string>, int[], Dictionary<string, int>, HashSet<int>");
+Console.WriteLine("   - Contains List<string>, int[], List<int>, ICollection<int>");
 Console.WriteLine("   - All collection properties lack equality attributes");
 Console.WriteLine("   - Analyzer should show warnings for each collection property");
 Console.WriteLine(
@@ -43,16 +43,16 @@ Console.WriteLine();
 var goodExample1 = new GoodExample_PropertyAttributed
 {
     OrderedItems = ["a", "b", "c"],
-    NumberSet = [1, 2, 3],
-    DataMap = new() { ["x"] = 10, ["y"] = 20 },
+    NumberCollection = [1, 2, 3],
+    DataSequence = [10, 20],
     IgnoredItems = ["ignored", "data"],
 };
 
 var goodExample2 = new GoodExample_PropertyAttributed
 {
     OrderedItems = ["a", "b", "c"],
-    NumberSet = [1, 2, 3],
-    DataMap = new() { ["x"] = 10, ["y"] = 20 },
+    NumberCollection = [1, 2, 3],
+    DataSequence = [10, 20],
     IgnoredItems = ["different", "ignored", "data"],
 };
 
@@ -62,8 +62,8 @@ Console.WriteLine();
 Console.WriteLine("2. GoodExample_PropertyAttributed:");
 Console.WriteLine("   - All collection properties have appropriate equality attributes");
 Console.WriteLine("   - OrderedEquality for List<string>");
-Console.WriteLine("   - SetEquality for HashSet<int>");
-Console.WriteLine("   - DefaultEquality for Dictionary<string, int>");
+Console.WriteLine("   - UnorderedEquality for ICollection<int>");
+Console.WriteLine("   - DefaultEquality for IEnumerable<int>");
 Console.WriteLine("   - IgnoreEquality for items that shouldn't affect equality");
 Console.WriteLine(
     $"   - Instance equality: {goodExample1.Equals(goodExample2)} (true, IgnoredItems differences ignored)"
@@ -121,11 +121,11 @@ public partial class BadExample_MissingAttributes
     // Should trigger GE001: Array property needs equality attribute
     public int[] NumberArray { get; set; } = [];
 
-    // Should trigger GE001: Dictionary property needs equality attribute
-    public Dictionary<string, int> DataDictionary { get; set; } = [];
+    // Should trigger GE001: List property needs equality attribute
+    public List<int> DataList { get; set; } = [];
 
-    // Should trigger GE001: HashSet property needs equality attribute
-    public HashSet<int> UniqueNumbers { get; set; } = [];
+    // Should trigger GE001: ICollection property needs equality attribute
+    public ICollection<int> NumberCollection { get; set; } = [];
 
     // Should NOT trigger warning: not a collection type
     public string RegularProperty { get; set; } = "";
@@ -165,13 +165,13 @@ public partial class GoodExample_PropertyAttributed
     [OrderedEquality]
     public List<string> OrderedItems { get; set; } = [];
 
-    // Properly attributed with SetEquality for HashSet<T>
-    [SetEquality]
-    public HashSet<int> NumberSet { get; set; } = [];
+    // Properly attributed with UnorderedEquality for ICollection<T>
+    [UnorderedEquality]
+    public ICollection<int> NumberCollection { get; set; } = [];
 
-    // Properly attributed with DefaultEquality for Dictionary<TKey, TValue>
+    // Properly attributed with DefaultEquality for IEnumerable<T>
     [DefaultEquality]
-    public Dictionary<string, int> DataMap { get; set; } = new();
+    public IEnumerable<int> DataSequence { get; set; } = [];
 
     // Properly attributed with IgnoreEquality to exclude from equality
     [IgnoreEquality]
@@ -193,8 +193,8 @@ public partial class GoodExample_VariousAttributes
     [OrderedEquality]
     public List<int> SequenceList { get; set; } = [];
 
-    [SetEquality]
-    public HashSet<string> StringSet { get; set; } = [];
+    [UnorderedEquality]
+    public string[] StringArray { get; set; } = [];
 
     [ReferenceEquality]
     public List<object> ReferenceList { get; set; } = [];
@@ -237,7 +237,7 @@ public class NonEquatable
     // Should NOT trigger warning: class is not [Equatable]
     public List<string> UnattributedList { get; set; } = [];
     public int[] UnattributedArray { get; set; } = [];
-    public Dictionary<string, object> UnattributedDictionary { get; set; } = new();
+    public IEnumerable<object> UnattributedEnumerable { get; set; } = [];
 }
 
 /// <summary>
@@ -266,8 +266,8 @@ public partial class NonPublicPropertiesExample
     protected int[] ProtectedArray { get; set; } = [];
 
     // Should NOT trigger warning: internal property
-    internal Dictionary<string, int> InternalDictionary { get; set; } = new();
+    internal List<int> InternalList { get; set; } = [];
 
     // This is public - should trigger GE001 warning
-    public HashSet<int> PublicSet { get; set; } = [];
+    public ICollection<int> PublicCollection { get; set; } = [];
 }
