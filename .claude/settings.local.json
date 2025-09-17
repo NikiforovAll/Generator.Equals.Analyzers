@@ -1,0 +1,44 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__task-master-ai__parse_prd",
+      "mcp__task-master-ai__analyze_project_complexity",
+      "mcp__task-master-ai__get_tasks",
+      "mcp__task-master-ai__next_task",
+      "mcp__task-master-ai__set_task_status",
+      "Bash(dotnet sln:*)",
+      "Bash(dotnet add:*)",
+      "Bash(dotnet build:*)",
+      "Bash(dotnet test:*)",
+      "mcp__task-master-ai__add_task",
+      "mcp__task-master-ai__move_task",
+      "mcp__task-master-ai__remove_dependency",
+      "mcp__task-master-ai__add_dependency",
+      "mcp__task-master-ai__validate_dependencies",
+      "Bash(dotnet remove:*)",
+      "WebSearch",
+      "mcp__task-master-ai__get_task",
+      "mcp__ide__getDiagnostics",
+      "mcp__task-master-ai__update_task",
+      "Bash(./tools/install-local-package.sh:*)",
+      "Bash(./tools/rebuild-playground.sh:*)"
+    ]
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "task-master-ai"
+  ],
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [[ $tool_input =~ \\\\.cs$ ]]; then dotnet csharpier format $tool_input; fi"
+          }
+        ]
+      }
+    ]
+  }
+}

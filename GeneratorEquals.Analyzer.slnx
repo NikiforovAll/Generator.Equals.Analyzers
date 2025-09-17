@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="src/GeneratorEquals.Analyzer/GeneratorEquals.Analyzer.csproj" />
+  <Project Path="src/GeneratorEquals.Analyzer.CodeFixes/GeneratorEquals.Analyzer.CodeFixes.csproj" />
+  <Project Path="test/GeneratorEquals.Analyzer.Test/GeneratorEquals.Analyzer.Test.csproj" />
+  <Project Path="src/GeneratorEquals.Analyzer.Package/GeneratorEquals.Analyzer.Package.csproj" />
+  <Project Path="src/Playground/Playground.csproj" />
+</Solution>
