@@ -91,3 +91,7 @@ public partial class Customer { /* ... */ }
 
 Example of code fix suggestions:
 ![](./assets/ge-code-fix.png)
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
