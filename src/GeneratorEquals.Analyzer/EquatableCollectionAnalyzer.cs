@@ -103,6 +103,7 @@ namespace GeneratorEquals.Analyzer
                 var elementType = GetCollectionElementType(typeSymbol);
                 if (
                     elementType != null
+                    && elementType.TypeKind != TypeKind.Error // Skip error types to avoid false positives
                     && IsComplexObjectType(elementType)
                     && !HasEquatableAttributeOnSymbol(elementType)
                 )
@@ -119,7 +120,7 @@ namespace GeneratorEquals.Analyzer
                 }
             }
             // GE002: Check complex object properties for missing [Equatable] on their type
-            else if (IsComplexObjectType(typeSymbol))
+            else if (typeSymbol.TypeKind != TypeKind.Error && IsComplexObjectType(typeSymbol))
             {
                 if (!HasEquatableAttributeOnSymbol(typeSymbol))
                 {
@@ -250,7 +251,12 @@ namespace GeneratorEquals.Analyzer
             if (typeSymbol is not INamedTypeSymbol namedTypeSymbol)
                 return false;
 
-            foreach (var attribute in namedTypeSymbol.GetAttributes())
+            // Use OriginalDefinition to ensure we check attributes on the actual type definition,
+            // not on a substituted or constructed version of the type.
+            // This is important for types resolved from different compilation contexts.
+            var targetSymbol = namedTypeSymbol.OriginalDefinition ?? namedTypeSymbol;
+
+            foreach (var attribute in targetSymbol.GetAttributes())
             {
                 var attributeClass = attribute.AttributeClass;
                 if (attributeClass != null)
