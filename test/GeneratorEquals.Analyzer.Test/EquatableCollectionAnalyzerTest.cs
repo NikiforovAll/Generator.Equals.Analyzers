@@ -793,8 +793,7 @@ public class TestClass
     }
 
     /// <summary>
-    /// This test reproduces the issue from the bug report:
-    /// https://github.com/NikiforovAll/Generator.Equals.Analyzers/issues/XXX
+    /// This test reproduces the issue from the bug report.
     /// 
     /// When a nullable array property (Engagement[]?) contains elements of a type
     /// that is marked with [Equatable], the GE003 warning should NOT be reported.

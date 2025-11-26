@@ -253,8 +253,8 @@ namespace GeneratorEquals.Analyzer
 
             // Use OriginalDefinition to ensure we check attributes on the actual type definition,
             // not on a substituted or constructed version of the type.
-            // This is important for types resolved from different compilation contexts.
-            var targetSymbol = namedTypeSymbol.OriginalDefinition ?? namedTypeSymbol;
+            // This is important for generic types and types resolved from different compilation contexts.
+            var targetSymbol = namedTypeSymbol.OriginalDefinition;
 
             foreach (var attribute in targetSymbol.GetAttributes())
             {
