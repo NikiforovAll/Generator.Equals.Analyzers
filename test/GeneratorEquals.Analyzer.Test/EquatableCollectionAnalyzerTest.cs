@@ -792,6 +792,251 @@ public class TestClass
         Assert.Empty(diagnostics);
     }
 
+    /// <summary>
+    /// This test reproduces the issue from the bug report.
+    /// 
+    /// When a nullable array property (Engagement[]?) contains elements of a type
+    /// that is marked with [Equatable], the GE003 warning should NOT be reported.
+    /// </summary>
+    [Fact]
+    public void EquatableClass_WithNullableArrayOfEquatableElements_ShouldNotReportGE003()
+    {
+        var source = """
+            using Generator.Equals;
+
+            namespace TestNamespace
+            {
+                [Equatable]
+                public partial class Engagement
+                {
+                    public string Name { get; set; } = "";
+                }
+
+                [Equatable]
+                public sealed partial class Metadata
+                {
+                    [UnorderedEquality]
+                    public Engagement[]? Engagements { get; set; }
+                }
+            }
+            """;
+
+        var diagnostics = GetGE003Diagnostics(source);
+
+        Assert.Empty(diagnostics);
+    }
+
+    /// <summary>
+    /// This test reproduces the issue when classes are in separate files.
+    /// The Engagement class is in one file and Metadata is in another file.
+    /// Both have [Equatable] attribute but the analyzer was reporting GE003.
+    /// </summary>
+    [Fact]
+    public void EquatableClass_WithArrayOfEquatableElements_InSeparateFiles_ShouldNotReportGE003()
+    {
+        var engagementSource = """
+            using Generator.Equals;
+
+            namespace TestNamespace
+            {
+                [Equatable]
+                public partial class Engagement
+                {
+                    public string Name { get; set; } = "";
+                }
+            }
+            """;
+
+        var metadataSource = """
+            using Generator.Equals;
+
+            namespace TestNamespace
+            {
+                [Equatable]
+                public sealed partial class Metadata
+                {
+                    [UnorderedEquality]
+                    public Engagement[]? Engagements { get; set; }
+                }
+            }
+            """;
+
+        var diagnostics = GetGE003DiagnosticsFromMultipleSources(engagementSource, metadataSource);
+
+        Assert.Empty(diagnostics);
+    }
+
+    /// <summary>
+    /// This test reproduces the issue with nullable reference types enabled.
+    /// </summary>
+    [Fact]
+    public void EquatableClass_WithNullableArrayOfEquatableElements_NullableEnabled_ShouldNotReportGE003()
+    {
+        var source = """
+            #nullable enable
+            using Generator.Equals;
+
+            namespace TestNamespace
+            {
+                [Equatable]
+                public partial class Engagement
+                {
+                    public string Name { get; set; } = "";
+                }
+
+                [Equatable]
+                public sealed partial class Metadata
+                {
+                    [UnorderedEquality]
+                    public Engagement[]? Engagements { get; set; }
+                }
+            }
+            """;
+
+        var diagnostics = GetGE003Diagnostics(source);
+
+        Assert.Empty(diagnostics);
+    }
+
+    /// <summary>
+    /// This test reproduces the issue when nullable is enabled and classes are in separate files.
+    /// </summary>
+    [Fact]
+    public void EquatableClass_WithNullableArray_InSeparateFiles_NullableEnabled_ShouldNotReportGE003()
+    {
+        var engagementSource = """
+            #nullable enable
+            using Generator.Equals;
+
+            namespace TestNamespace
+            {
+                [Equatable]
+                public partial class Engagement
+                {
+                    public string Name { get; set; } = "";
+                }
+            }
+            """;
+
+        var metadataSource = """
+            #nullable enable
+            using Generator.Equals;
+
+            namespace TestNamespace
+            {
+                [Equatable]
+                public sealed partial class Metadata
+                {
+                    [UnorderedEquality]
+                    public Engagement[]? Engagements { get; set; }
+                }
+            }
+            """;
+
+        var diagnostics = GetGE003DiagnosticsFromMultipleSources(engagementSource, metadataSource);
+
+        Assert.Empty(diagnostics);
+    }
+
+    /// <summary>
+    /// This test reproduces the exact issue from the bug report where the element type
+    /// is an empty [Equatable] partial class.
+    /// </summary>
+    [Fact]
+    public void EquatableClass_WithArrayOfEmptyEquatableElements_ShouldNotReportGE003()
+    {
+        var source = """
+            using Generator.Equals;
+
+            namespace TestNamespace
+            {
+                [Equatable]
+                public partial class Engagement {}
+
+                [Equatable]
+                public sealed partial class Metadata
+                {
+                    [UnorderedEquality]
+                    public Engagement[]? Engagements { get; set; }
+                }
+            }
+            """;
+
+        var diagnostics = GetGE003Diagnostics(source);
+
+        Assert.Empty(diagnostics);
+    }
+
+    /// <summary>
+    /// This test checks handling of List with nullable element types (List&lt;Engagement?&gt;)
+    /// where the element type itself has nullable annotation.
+    /// </summary>
+    [Fact]
+    public void EquatableClass_WithListOfNullableEquatableElements_ShouldNotReportGE003()
+    {
+        var source = """
+            #nullable enable
+            using System.Collections.Generic;
+            using Generator.Equals;
+
+            namespace TestNamespace
+            {
+                [Equatable]
+                public partial class Engagement
+                {
+                    public string Name { get; set; } = "";
+                }
+
+                [Equatable]
+                public sealed partial class Metadata
+                {
+                    [UnorderedEquality]
+                    public List<Engagement?> Engagements { get; set; } = new();
+                }
+            }
+            """;
+
+        var diagnostics = GetGE003Diagnostics(source);
+
+        Assert.Empty(diagnostics);
+    }
+
+    /// <summary>
+    /// This test reproduces the exact scenario from the bug report with:
+    /// - Interface implementation
+    /// - Nullable array property
+    /// - Empty [Equatable] class
+    /// </summary>
+    [Fact]
+    public void EquatableClass_WithInterfaceAndNullableArrayOfEquatableElements_ShouldNotReportGE003()
+    {
+        var source = """
+            using Generator.Equals;
+
+            namespace TestNamespace
+            {
+                public interface IMetadata
+                {
+                    Engagement[]? Engagements { get; set; }
+                }
+
+                [Equatable]
+                public partial class Engagement {}
+
+                [Equatable]
+                public sealed partial class Metadata : IMetadata
+                {
+                    [UnorderedEquality]
+                    public Engagement[]? Engagements { get; set; }
+                }
+            }
+            """;
+
+        var diagnostics = GetGE003Diagnostics(source);
+
+        Assert.Empty(diagnostics);
+    }
+
     private static Diagnostic[] GetGE003Diagnostics(string source)
     {
         var syntaxTree = CSharpSyntaxTree.ParseText(source);
@@ -802,6 +1047,29 @@ public class TestClass
         var compilation = CSharpCompilation.Create(
             "TestCompilation",
             [syntaxTree],
+            references,
+            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
+        );
+
+        var analyzer = new EquatableCollectionAnalyzer();
+        var compilationWithAnalyzers = compilation.WithAnalyzers(
+            ImmutableArray.Create<DiagnosticAnalyzer>(analyzer)
+        );
+
+        var diagnostics = compilationWithAnalyzers.GetAnalyzerDiagnosticsAsync().Result;
+        return diagnostics.Where(d => d.Id == "GE003").ToArray();
+    }
+
+    private static Diagnostic[] GetGE003DiagnosticsFromMultipleSources(params string[] sources)
+    {
+        var syntaxTrees = sources.Select(s => CSharpSyntaxTree.ParseText(s)).ToArray();
+
+        var references = new List<MetadataReference>(Net80.References.All);
+        references.Add(s_generatorEqualsReference);
+
+        var compilation = CSharpCompilation.Create(
+            "TestCompilation",
+            syntaxTrees,
             references,
             new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
         );
