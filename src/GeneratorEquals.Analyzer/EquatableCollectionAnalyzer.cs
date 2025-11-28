@@ -250,6 +250,8 @@ namespace GeneratorEquals.Analyzer
         {
             // Strip nullable annotation to get the underlying type
             // This handles cases like "Engagement?" where the symbol has NullableAnnotation.Annotated
+            // While OriginalDefinition also strips annotations, this explicit step ensures we handle
+            // all edge cases and makes the intent clear.
             var unwrappedType = typeSymbol.WithNullableAnnotation(NullableAnnotation.None);
             
             if (unwrappedType is not INamedTypeSymbol namedTypeSymbol)
