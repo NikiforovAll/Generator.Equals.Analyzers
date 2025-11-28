@@ -248,7 +248,11 @@ namespace GeneratorEquals.Analyzer
 
         private static bool HasEquatableAttributeOnSymbol(ITypeSymbol typeSymbol)
         {
-            if (typeSymbol is not INamedTypeSymbol namedTypeSymbol)
+            // Strip nullable annotation to get the underlying type
+            // This handles cases like "Engagement?" where the symbol has NullableAnnotation.Annotated
+            var unwrappedType = typeSymbol.WithNullableAnnotation(NullableAnnotation.None);
+            
+            if (unwrappedType is not INamedTypeSymbol namedTypeSymbol)
                 return false;
 
             // Use OriginalDefinition to ensure we check attributes on the actual type definition,

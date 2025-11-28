@@ -968,6 +968,40 @@ public class TestClass
     }
 
     /// <summary>
+    /// This test checks handling of List with nullable element types (List&lt;Engagement?&gt;)
+    /// where the element type itself has nullable annotation.
+    /// </summary>
+    [Fact]
+    public void EquatableClass_WithListOfNullableEquatableElements_ShouldNotReportGE003()
+    {
+        var source = """
+            #nullable enable
+            using System.Collections.Generic;
+            using Generator.Equals;
+
+            namespace TestNamespace
+            {
+                [Equatable]
+                public partial class Engagement
+                {
+                    public string Name { get; set; } = "";
+                }
+
+                [Equatable]
+                public sealed partial class Metadata
+                {
+                    [UnorderedEquality]
+                    public List<Engagement?> Engagements { get; set; } = new();
+                }
+            }
+            """;
+
+        var diagnostics = GetGE003Diagnostics(source);
+
+        Assert.Empty(diagnostics);
+    }
+
+    /// <summary>
     /// This test reproduces the exact scenario from the bug report with:
     /// - Interface implementation
     /// - Nullable array property
